@@ -1,12 +1,12 @@
 [submodule "ros_ws/src/spar"]
 	path = ros_ws/src/spar
-	url = git@github.com:frosty999/spar.git
+	url = https://github.com/frosty999/spar.git
 [submodule "ros_ws/src/qutas_lab_450"]
 	path = ros_ws/src/qutas_lab_450
-	url = git@github.com:frosty999/qutas_lab_450.git
+	url = https://github.com/frosty999/qutas_lab_450.git
 [submodule "ros_ws/src/breadcrumb"]
 	path = ros_ws/src/breadcrumb
-	url = git@github.com:frosty999/breadcrumb.git
+	url = https://github.com/frosty999/breadcrumb.git
 [submodule "ros_ws/src/uavasr_emulator"]
 	path = ros_ws/src/uavasr_emulator
-	url = git@github.com:qutas/uavasr_emulator.git
+	url = https://github.com/qutas/uavasr_emulator.git
