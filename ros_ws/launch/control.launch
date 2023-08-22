@@ -3,7 +3,7 @@
 	<arg name="uav_name" default="UAVTeam3" />
 
 	<!-- MAVROS Parameters -->
-	<arg name="fcu_url" default="/dev/ttyUSB0:115200" />
+	<arg name="fcu_url" default="/dev/ttyUSB0:921600" />
 	<arg name="gcs_url" default="" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
