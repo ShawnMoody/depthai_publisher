@@ -10,3 +10,9 @@
 [submodule "ros_ws/src/uavasr_emulator"]
 	path = ros_ws/src/uavasr_emulator
 	url = https://github.com/qutas/uavasr_emulator.git
+[submodule "ros_ws/depthai_publisher"]
+	path = ros_ws/depthai_publisher
+	url = https://github.com/Piaktipik/depthai_publisher.git
+[submodule "ros_ws/src/depthai_publisher"]
+	path = ros_ws/src/depthai_publisher
+	url = https://github.com/Piaktipik/depthai_publisher.git
