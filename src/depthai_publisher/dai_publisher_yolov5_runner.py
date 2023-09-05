@@ -28,15 +28,15 @@ cam=None
 # sync outputs
 syncNN = True
 # model path
-modelsPath = "/home/UAVTeam3/ros_ws/src/depthai_publisher/src/depthai_publisher/models"
+modelsPath = "/home/UAVTeam3/ros_ws/src/"
 # modelName = 'exp31Yolov5_ov21.4_6sh'
-modelName = 'best_openvino_2022.1_6shave'
+modelName = 'new_model2'
 # confJson = 'exp31Yolov5.json'
-confJson = 'best.json'
+confJson = 'new_model.json'
 
 ################################  Yolo Config File
 # parse config
-configPath = Path(f'{modelsPath}/{modelName}/{confJson}')
+configPath = Path(f'{modelsPath}/{confJson}')
 if not configPath.exists():
     raise ValueError("Path {} does not exist!".format(configPath))
 
@@ -134,7 +134,7 @@ class DepthaiCamera():
         pipeline = None
         # Get argument first
         # Model parameters
-        modelPathName = f'{modelsPath}/{modelName}/{modelName}.blob'
+        modelPathName = f'{modelsPath}/{modelName}.blob'
         print(metadata)
         nnPath = str((Path(__file__).parent / Path(modelPathName)).resolve().absolute())
         print(nnPath)
