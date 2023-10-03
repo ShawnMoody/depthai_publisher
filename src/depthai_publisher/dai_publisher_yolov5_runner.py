@@ -20,6 +20,17 @@ import rospy
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 
+
+import rospy
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
+from std_msgs.msg import Time
+
+
+
+
+
+
 ############################### ############################### Parameters ###############################
 # Global variables to deal with pipeline creation
 pipeline = None
@@ -28,11 +39,18 @@ cam=None
 # sync outputs
 syncNN = True
 # model path
-modelsPath = "/home/UAVTeam3/ros_ws/src/"
+modelsPath = "/home/UAVTeam3/EGH450G3/ros_ws/src/"
 # modelName = 'exp31Yolov5_ov21.4_6sh'
-modelName = 'new_model2'
+modelName = 'NEWESTMODEL'
 # confJson = 'exp31Yolov5.json'
-confJson = 'new_model.json'
+confJson = 'NEWESTMODEL.json'
+
+# Global Variables
+tfbr = None
+pub_found = None
+
+camera_name = "camera"
+#target_name = "target"
 
 ################################  Yolo Config File
 # parse config
@@ -86,6 +104,36 @@ class DepthaiCamera():
         self.br = CvBridge()
 
         rospy.on_shutdown(lambda: self.shutdown())
+    
+    
+    def send_tf_target(self):
+        time_found = rospy.Time.now()
+        # target_name = labels[self.detection.label]
+	    # Create a transform arbitrarily in the
+	    # camera frame
+        #if labels[detection.label] == 'Backpack':
+          #      self.target_name = "Backpack"  
+        #elif labels[detection.label] == 'Person':
+         #       self.target_name = "Person"  
+        self.t = TransformStamped()
+        self.t.header.stamp = time_found
+        self.t.header.frame_id = camera_name
+        self.t.child_frame_id = self.target_name
+        # In here we need a code to get the target location relative to the camera (Perhaps solve PnP)
+
+        # Once we know where the target is, relative to the camera frame, we create and sent that transform (relative position target to camera)
+        self.t.transform.translation.x = -0.4
+        self.t.transform.translation.y = 0.2
+        self.t.transform.translation.z = 1.5-0.15     # - altitude of the UAV camera Z.
+        self.t.transform.rotation.x = 0.0
+        self.t.transform.rotation.y = 0.0
+        self.t.transform.rotation.z = 0.0
+        self.t.transform.rotation.w = 1.0
+
+	# Send the transformation to TF
+	# and "found" timestamp to localiser
+        self.tfbr.sendTransform(self.t)
+        self.pub_found.publish(time_found)
 
     def publish_camera_info(self, timer=None):
         # Create a publisher for the CameraInfo topic
@@ -196,7 +244,43 @@ class DepthaiCamera():
                     self.publish_to_ros(frame)
                     self.publish_detect_to_ros(overlay)
                     self.publish_camera_info()
+                 
+                    
+                   # px = circles[0,0,0]
+                    #py = circles[0,0,1]
+                    #pr = circles[0,0,2]
+                    
+                    #self.model_image = np.array([
+                    #    (px, py),
+                    #    (px+pr, py+pr),
+                    #    (px+pr, py-pr),
+                    #    (px-pr, py+pr),
+                    #    (px-pr, py-pr)])
 
+                    # Do the SolvePnP method
+                    #(success, rvec, tvec) = cv2.solvePnP(self.model_object, self.model_image, self.camera_matrix, self.dist_coeffs)
+
+				    # If a result was found, send to TF2
+                    #if success:
+                     #   time_found = rospy.Time.now()
+                     #   msg_out = TransformStamped()
+                     #   msg_out.header.stamp = time_found
+                     #   msg_out.header = msg_in.header
+                     #   msg_out.header.frame_id = "camera"
+                     #   msg_out.child_frame_id = "target"
+                     #   msg_out.transform.translation.x = tvec[0]
+                     #   msg_out.transform.translation.y = tvec[1]
+                     #   msg_out.transform.translation.z = tvec[2]
+                     #   msg_out.transform.rotation.w = 1.0	# Could use rvec, but need to convert from DCM to quaternion first
+                     #   msg_out.transform.rotation.x = 0.0
+                     #   msg_out.transform.rotation.y = 0.0
+                     #   msg_out.transform.rotation.z = 0.0
+                     #  self.tfbr.sendTransform(msg_out)
+                     #   self.pub_target_found.publish(time_found)
+                     #   rospy.loginfo("Sent target found")
+                        # Setup tf2 broadcaster and timestamp publisher
+                     #   tfbr = tf2_ros.TransformBroadcaster()
+                     #   pub_found = rospy.Publisher('/emulated_uav/target_found', Time, queue_size=10)
                 ## Function to compute FPS
                 counter+=1
                 if (time.time() - start_time) > 1 :
@@ -219,7 +303,7 @@ class DepthaiCamera():
         msg_out = CompressedImage()
         msg_out.header.stamp = rospy.Time.now()
         msg_out.format = "jpeg"
-        msg_out.header.frame_id = "home"
+        msg_out.header.frame_id = "camera"
         msg_out.data = np.array(cv2.imencode('.jpg', frame)[1]).tostring()
         self.pub_image.publish(msg_out)
         # Publish image raw
@@ -251,6 +335,36 @@ class DepthaiCamera():
             cv2.putText(overlay, labels[detection.label], (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.putText(overlay, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(overlay, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            #self.rospy.init_node('tf2_broadcaster_target')
+            rospy.loginfo(labels[detection.label])
+           
+            if labels[detection.label] == 'Backpack':
+                # Setup tf2 broadcaster and timestamp publisher
+                self.tfbr = tf2_ros.TransformBroadcaster()
+                self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Backpack', Time, queue_size=10)
+                self.target_name = "Backpack"
+                # Give the nodes a few seconds to configure
+                rospy.sleep(rospy.Duration(2))
+                # Send out our target messages
+                self.send_tf_target()
+                # Give the nodes a few seconds to transmit data
+                # then we can exit
+                rospy.sleep(rospy.Duration(2))
+                rospy.loginfo("Camera Has located Backpack")
+
+            elif labels[detection.label] == 'Person':
+                # Setup tf2 broadcaster and timestamp publisher
+                self.tfbr = tf2_ros.TransformBroadcaster()
+                self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Person', Time, queue_size=10)
+                self.target_name = "Person"
+                # Give the nodes a few seconds to configure
+                rospy.sleep(rospy.Duration(2))
+                # Send out our target messages
+                self.send_tf_target()
+            # Give the nodes a few seconds to transmit data
+            # then we can exit
+                rospy.sleep(rospy.Duration(2))
+                rospy.loginfo("Camera Has located Person")
 
         return overlay
 
@@ -285,7 +399,7 @@ class DepthaiCamera():
             cam.setInterleaved(False)
             cam.preview.link(detection_nn.input)
             cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-            cam.setFps(40)
+            cam.setFps(10)
             print("Using RGB camera...")
         elif cam_source == 'left':
             cam = pipeline.create(dai.node.MonoCamera)
