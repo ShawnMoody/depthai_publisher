@@ -18,7 +18,7 @@ pub_found = None
 
 camera_name = "camera"
 target_name = "Aruco"
-LZ = 23
+LZ = 1
 
 class ArucoDetector():
     aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_100)

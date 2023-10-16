@@ -39,15 +39,16 @@ cam=None
 # sync outputs
 syncNN = True
 # model path
-modelsPath = "/home/UAVTeam3/EGH450G3/ros_ws/src/"
+modelsPath = "/home/UAVTeam3/EGH450G3/ros_ws/src/MODELs"
 # modelName = 'exp31Yolov5_ov21.4_6sh'
-modelName = 'NEWESTMODEL'
+modelName = 'DETEX'
 # confJson = 'exp31Yolov5.json'
-confJson = 'NEWESTMODEL.json'
+confJson = 'DETEX.json'
 
 # Global Variables
 tfbr = None
 pub_found = None
+
 
 camera_name = "camera"
 #target_name = "target"
@@ -69,7 +70,8 @@ coordinates = metadata.get("coordinates", {})
 anchors = metadata.get("anchors", {})
 anchorMasks = metadata.get("anchor_masks", {})
 iouThreshold = metadata.get("iou_threshold", {})
-confidenceThreshold = metadata.get("confidence_threshold", {})
+#confidenceThreshold = metadata.get("confidence_threshold", {})
+confidenceThreshold = 0.05
 # Parse labels
 nnMappings = config.get("mappings", {})
 labels = nnMappings.get("labels", {})
@@ -336,35 +338,47 @@ class DepthaiCamera():
             cv2.putText(overlay, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(overlay, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
             #self.rospy.init_node('tf2_broadcaster_target')
-            rospy.loginfo(labels[detection.label])
+            #rospy.loginfo(labels[detection.label])
+            self.logic_test1 = 0
+            self.logic_test2 = 0
+            #rospy.loginfo(int(detection.confidence * 100))
            
             if labels[detection.label] == 'Backpack':
-                # Setup tf2 broadcaster and timestamp publisher
-                self.tfbr = tf2_ros.TransformBroadcaster()
-                self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Backpack', Time, queue_size=10)
-                self.target_name = "Backpack"
-                # Give the nodes a few seconds to configure
-                rospy.sleep(rospy.Duration(2))
-                # Send out our target messages
-                self.send_tf_target()
-                # Give the nodes a few seconds to transmit data
-                # then we can exit
-                rospy.sleep(rospy.Duration(2))
-                rospy.loginfo("Camera Has located Backpack")
+                if 80 < (int(detection.confidence * 100)) : 
+                    # Setup tf2 broadcaster and timestamp publisher
+                    rospy.loginfo(int(detection.confidence * 100))
+                    self.tfbr = tf2_ros.TransformBroadcaster()
+                    self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Backpack', Time, queue_size=10)
+                    self.target_name = "Backpack"
+                    # Give the nodes a few seconds to configure
+                    rospy.sleep(rospy.Duration(2))
+                    # Send out our target messages
+                    self.send_tf_target()
+                    # Give the nodes a few seconds to transmit data
+                    # then we can exit
+                    rospy.sleep(rospy.Duration(2))
+                    rospy.loginfo("Camera Has located Backpack")
+                    
+                else : 
+                    return overlay
 
             elif labels[detection.label] == 'Person':
-                # Setup tf2 broadcaster and timestamp publisher
-                self.tfbr = tf2_ros.TransformBroadcaster()
-                self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Person', Time, queue_size=10)
-                self.target_name = "Person"
-                # Give the nodes a few seconds to configure
-                rospy.sleep(rospy.Duration(2))
-                # Send out our target messages
-                self.send_tf_target()
-            # Give the nodes a few seconds to transmit data
-            # then we can exit
-                rospy.sleep(rospy.Duration(2))
-                rospy.loginfo("Camera Has located Person")
+                if 80 < (int(detection.confidence * 100)) : 
+                    rospy.loginfo(int(detection.confidence * 100))
+                    # Setup tf2 broadcaster and timestamp publisher
+                    self.tfbr = tf2_ros.TransformBroadcaster()
+                    self.pub_found = rospy.Publisher('/UAVTeam3/target_found_Person', Time, queue_size=10)
+                    self.target_name = "Person"
+                    # Give the nodes a few seconds to configure
+                    rospy.sleep(rospy.Duration(2))
+                    # Send out our target messages
+                    self.send_tf_target()
+                 # Give the nodes a few seconds to transmit data
+                    # then we can exit
+                    rospy.sleep(rospy.Duration(2))
+                    rospy.loginfo("Camera Has located Person")
+                else : 
+                    return overlay
 
         return overlay
 
